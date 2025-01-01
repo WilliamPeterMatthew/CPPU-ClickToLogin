@@ -41,12 +41,16 @@ jobs:
         echo "::set-output name=tag::$new_tag"
     
     - name: Create new release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         release_tag=${{ steps.releases.outputs.tag }}
         echo "Creating new release with tag: $release_tag"
         gh release create "$release_tag" dist/* --title "CPPU-ClickToLogin $release_tag" --notes "CPPU上网认证客户端 $release_tag"
 
     - name: Upload files to release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "Uploading files to release"
         gh release upload ${{ steps.releases.outputs.tag }} dist/* --clobber

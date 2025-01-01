@@ -31,11 +31,12 @@ jobs:
         $env:PATH="$env:PYENV_ROOT\pyenv-win\bin;$env:PATH"
         $env:PATH="$env:PYENV_ROOT\pyenv-win\shims;$env:PATH"
         
-        if ($env:ARCH -eq "x64") {
-          pyenv install 3.10.0
+        if (${{ matrix.arch }} -eq "x86") {
+          pyenv install 3.10.0 --arch 32
         } else {
-          pyenv install 3.10.0 --32
+          pyenv install 3.10.0 --arch 64
         }
+
         pyenv global 3.10.0
 
     - name: Install PyInstaller

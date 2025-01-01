@@ -17,27 +17,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up pyenv-win and install Python for ${{ matrix.arch }}
+    - name: Install Python for ${{ matrix.arch }}
       shell: pwsh
       run: |
-        Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"
-        &"./install-pyenv-win.ps1"
-
-        echo "export PYENV_ROOT=$env:USERPROFILE\.pyenv" | Out-File -Append -FilePath $env:GITHUB_ENV
-        echo "export PATH=$env:PYENV_ROOT\pyenv-win\bin;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
-        echo "export PATH=$env:PYENV_ROOT\pyenv-win\shims;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
-
-        $env:PYENV_ROOT="$env:USERPROFILE\.pyenv"
-        $env:PATH="$env:PYENV_ROOT\pyenv-win\bin;$env:PATH"
-        $env:PATH="$env:PYENV_ROOT\pyenv-win\shims;$env:PATH"
-        
         if ($env:ARCH -eq "x86") {
-          pyenv install 3.10.0 --arch 32
+          $url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0-embed-win32.zip"
+          $zipPath = "$env:USERPROFILE\python-3.10.0-embed-win32.zip"
+          Invoke-WebRequest -Uri $url -OutFile $zipPath
+          Expand-Archive -Path $zipPath -DestinationPath "$env:USERPROFILE\python-3.10.0"
+          
+          $env:PATH = "$env:USERPROFILE\python-3.10.0;$env:USERPROFILE\python-3.10.0\Scripts;$env:PATH"
         } else {
-          pyenv install 3.10.0 --arch 64
+          $url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0-embed-amd64.zip"
+          $zipPath = "$env:USERPROFILE\python-3.10.0-embed-amd64.zip"
+          Invoke-WebRequest -Uri $url -OutFile $zipPath
+          Expand-Archive -Path $zipPath -DestinationPath "$env:USERPROFILE\python-3.10.0"
+          
+          $env:PATH = "$env:USERPROFILE\python-3.10.0;$env:USERPROFILE\python-3.10.0\Scripts;$env:PATH"
         }
-
-        pyenv global 3.10.0
 
     - name: Install PyInstaller
       run: |

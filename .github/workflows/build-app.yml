@@ -31,7 +31,7 @@ jobs:
         $env:PATH="$env:PYENV_ROOT\pyenv-win\bin;$env:PATH"
         $env:PATH="$env:PYENV_ROOT\pyenv-win\shims;$env:PATH"
         
-        if (${{ matrix.arch }} -eq "x64") {
+        if ($env:ARCH -eq "x64") {
           pyenv install 3.10.0
         } else {
           pyenv install 3.10.0 --32

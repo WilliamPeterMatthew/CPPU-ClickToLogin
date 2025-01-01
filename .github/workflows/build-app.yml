@@ -17,10 +17,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Python for ${{ matrix.arch }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.arch == 'x64' && '3.10' || '3.10-32' }}
+    - name: Set up pyenv and install Python for ${{ matrix.arch }}
+      run: |
+        curl https://pyenv.run | bash
+        echo "export PATH=\"$HOME/.pyenv/bin:$PATH\"" >> $GITHUB_ENV
+        echo "export PYENV_ROOT=\"$HOME/.pyenv\"" >> $GITHUB_ENV
+        echo "eval \"\$($HOME/.pyenv/bin/pyenv init --path)\"" >> $GITHUB_ENV
+        echo "eval \"\$($HOME/.pyenv/bin/pyenv init -)\"" >> $GITHUB_ENV
+        source $GITHUB_ENV
+        if [ "${{ matrix.arch }}" == "x64" ]; then
+          pyenv install 3.10.0
+        else
+          pyenv install 3.10.0 --32
+        fi
+        pyenv global 3.10.0
 
     - name: Install PyInstaller
       run: |

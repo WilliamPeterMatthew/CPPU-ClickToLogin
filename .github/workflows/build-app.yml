@@ -17,18 +17,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up pyenv and install Python for ${{ matrix.arch }}
+    - name: Set up pyenv-win and install Python for ${{ matrix.arch }}
       shell: pwsh
       run: |
-        Invoke-WebRequest -Uri https://pyenv.run | Invoke-Expression
-        
+        Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"
+        &"./install-pyenv-win.ps1"
+
         echo "export PYENV_ROOT=$env:USERPROFILE\.pyenv" | Out-File -Append -FilePath $env:GITHUB_ENV
-        echo "export PATH=$env:PYENV_ROOT\bin;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
-        echo "export PATH=$env:PYENV_ROOT\shims;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
+        echo "export PATH=$env:PYENV_ROOT\pyenv-win\bin;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
+        echo "export PATH=$env:PYENV_ROOT\pyenv-win\shims;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
 
         $env:PYENV_ROOT="$env:USERPROFILE\.pyenv"
-        $env:PATH="$env:PYENV_ROOT\bin;$env:PATH"
-        $env:PATH="$env:PYENV_ROOT\shims;$env:PATH"
+        $env:PATH="$env:PYENV_ROOT\pyenv-win\bin;$env:PATH"
+        $env:PATH="$env:PYENV_ROOT\pyenv-win\shims;$env:PATH"
         
         if (${{ matrix.arch }} -eq "x64") {
           pyenv install 3.10.0

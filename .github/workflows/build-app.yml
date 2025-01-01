@@ -33,45 +33,8 @@ jobs:
         pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --name "CPPU-ClickToLogin-${{ matrix.arch }}" CPPU-ClickToLogin.py
         move dist\* ..\dist\
 
-    - name: Get current date and format it
-      id: date
-      run: |
-        $current_date = (Get-Date -AsUTC).ToUniversalTime().AddHours(8).ToString("yyyyMMdd")
-        echo "Current date: $current_date"
-        echo "::set-output name=date::$current_date"
-
-    - name: Get existing releases and count versions
-      id: releases
-      run: |
-        $current_date=${{ steps.date.outputs.date }}
-        $release_tag_prefix="v${current_date}-"
-        $release_numbers = gh release list --json tagName -q ".[] | select(.tagName | startswith(\"${release_tag_prefix}\")) | .tagName" || echo ""
-        $release_count = $release_numbers.Count
-        
-        if ($release_count -gt 0) {
-          $release_versions = $release_numbers | ForEach-Object {
-            $_ -replace '.*-([0-9]+)$','$1'
-          }
-          $max_version = $release_versions | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum
-          $new_version_number = "{0:D2}" -f ([int]$max_version + 1)
-        } else {
-          $new_version_number = "01"
-        }
-        
-        $new_tag = "v${current_date}-${new_version_number}"
-        echo "::set-output name=tag::$new_tag"
-
-    - name: Create new release
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        release_tag=${{ steps.releases.outputs.tag }}
-        echo "Creating new release with tag: $release_tag"
-        
-        gh release create "$release_tag" dist/* --title "Release $release_tag" --notes "Automated release for $release_tag"
-
-    - name: Upload files to release
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release upload ${{ steps.releases.outputs.tag }} dist/* --clobber
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows-executables
+        path: dist/*

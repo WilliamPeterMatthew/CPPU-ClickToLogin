@@ -1,41 +1,52 @@
-name: Build Executables
+name: Build App
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - master
 
 jobs:
-  build:
-    runs-on: windows-latest
+  create-release:
+    runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        arch: [x64, x86]  # 指定不同架构
-
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'  # 选择合适的 Python 版本
-
-    - name: Install PyInstaller and dependencies
+    - name: Get current date and format it
+      id: date
       run: |
-        python -m pip install --upgrade pip
-        pip install pyinstaller
+        current_date=$(TZ="Asia/Shanghai" date "+%Y%m%d")
+        echo "Current date: $current_date"
+        echo "::set-output name=date::$current_date"
 
-    - name: Build executable with PyInstaller
+    - name: Get existing releases and count versions
+      id: releases
       run: |
-        pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --arch ${{ matrix.arch }} --distpath dist/${{ matrix.arch }} --name "CPPU-ClickToLogin-${{ matrix.arch }}" CPPU-ClickToLogin.py
+        current_date=${{ steps.date.outputs.date }}
+        release_tag_prefix="v${current_date}-"
+        release_numbers=$(gh release list --json tagName -q ".[] | select(.tagName | startswith(\"${release_tag_prefix}\")) | .tagName" || echo "")
+        release_count=$(echo "$release_numbers" | wc -l)
+        
+        if [ $release_count -gt 0 ]; then
+          max_version=$(echo "$release_numbers" | sort -V | tail -n 1)
+          version_number=$(echo $max_version | sed 's/^.*-\([0-9]*\)$/\1/')
+          new_version_number=$(printf "%02d" $((version_number + 1)))
+        else
+          new_version_number="01"
+        fi
+        
+        new_tag="v${current_date}-${new_version_number}"
+        echo "New release tag: $new_tag"
+        echo "::set-output name=tag::$new_tag"
+    
+    - name: Create new release
+      run: |
+        release_tag=${{ steps.releases.outputs.tag }}
+        echo "Creating new release with tag: $release_tag"
+        gh release create "$release_tag" dist/* --title "CPPU-ClickToLogin $release_tag" --notes "CPPU上网认证客户端 $release_tag"
 
-    - name: Upload 64-bit and 32-bit builds as artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-${{ matrix.arch }}
-        path: dist/${{ matrix.arch }}/*
+    - name: Upload files to release
+      run: |
+        echo "Uploading files to release"
+        gh release upload ${{ steps.releases.outputs.tag }} dist/* --clobber

@@ -30,7 +30,7 @@ jobs:
 
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --arch ${{ matrix.arch }} --name "CPPU-ClickToLogin-${{ matrix.arch }}"CPPU-ClickToLogin.py
+        pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --arch=${{ matrix.arch }} --name="CPPU-ClickToLogin-${{ matrix.arch }}" CPPU-ClickToLogin.py
         mv dist/* ../dist/
 
     - name: Get current date and format it

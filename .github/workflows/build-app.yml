@@ -17,22 +17,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up pyenv and install Python for ${{ matrix.arch }}
+    - name: Set up pyenv-win and install Python for ${{ matrix.arch }}
       shell: bash
       run: |
-        curl https://pyenv.run | bash
-        echo "export PYENV_ROOT=\"$HOME/.pyenv\"" >> $GITHUB_ENV
+        curl https://github.com/pyenv-win/pyenv-win/releases/latest/download/pyenv-win.zip -o pyenv-win.zip
+        unzip pyenv-win.zip -d $HOME/.pyenv
+
+        echo "export PYENV_ROOT=\"$HOME/.pyenv/pyenv-win\"" >> $GITHUB_ENV
         echo "export PATH=\"$PYENV_ROOT/bin:$PATH\"" >> $GITHUB_ENV
         echo "export PATH=\"$PYENV_ROOT/shims:$PATH\"" >> $GITHUB_ENV
         source $GITHUB_ENV
-        export PATH="$HOME/.pyenv/bin:$PATH"
-        export PYENV_ROOT="$HOME/.pyenv"
-        export PATH="$HOME/.pyenv/shims:$PATH"
-        
+
         if [ "${{ matrix.arch }}" == "x64" ]; then
           pyenv install 3.10.0
         else
-          pyenv install 3.10.0 --32
+          pyenv install 3.10.0 --arch 32
         fi
         pyenv global 3.10.0
 
@@ -43,10 +42,11 @@ jobs:
 
     - name: Build executable with PyInstaller for ${{ matrix.arch }}
       run: |
+        # Build with PyInstaller
         pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --name "CPPU-ClickToLogin-${{ matrix.arch }}" CPPU-ClickToLogin.py
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: windows-executables-${{ matrix.arch }}
-        path: dist/*
+        path: dist/CPPU-ClickToLogin-${{ matrix.arch }}*

@@ -20,7 +20,7 @@ jobs:
     - name: Install Python for ${{ matrix.arch }}
       shell: pwsh
       run: |
-        if ($env:ARCH -eq "x86") {
+        if ("${{ matrix.arch }}" -eq "x86") {
           $url = "https://www.python.org/ftp/python/3.10.0/python-3.10.0-embed-win32.zip"
           $zipPath = "$env:USERPROFILE\python-3.10.0-embed-win32.zip"
           Invoke-WebRequest -Uri $url -OutFile $zipPath

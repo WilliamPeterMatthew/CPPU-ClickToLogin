@@ -36,7 +36,7 @@ jobs:
     - name: Get current date and format it
       id: date
       run: |
-        current_date=$(TZ="Asia/Shanghai" date "+%Y%m%d")
+        $current_date = (Get-Date -AsUTC).ToUniversalTime().AddHours(8).ToString("yyyyMMdd")
         echo "Current date: $current_date"
         echo "::set-output name=date::$current_date"
 

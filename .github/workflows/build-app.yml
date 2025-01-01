@@ -6,11 +6,15 @@ on:
       - master
 
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
     
+    strategy:
+      matrix:
+        arch: [x64, x86]
+
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
     - name: Set up Python
@@ -18,14 +22,15 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install dependencies
+    - name: Install PyInstaller and dependencies
       run: |
-        pip install --upgrade pip
+        python -m pip install --upgrade pip
         pip install pyinstaller
+        pip install ghapi
 
-    - name: Build the executable
+    - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." CPPU-ClickToLogin.py
+        pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --arch ${{ matrix.arch }} --name "CPPU-ClickToLogin-${{ matrix.arch }}"CPPU-ClickToLogin.py
         mv dist/* ../dist/
 
     - name: Get current date and format it
@@ -54,7 +59,7 @@ jobs:
 
         new_tag="v${current_date}-${new_version_number}"
         echo "::set-output name=tag::$new_tag"
-    
+
     - name: Create new release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

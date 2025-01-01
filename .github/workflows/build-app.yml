@@ -17,22 +17,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up pyenv-win and install Python for ${{ matrix.arch }}
-      shell: bash
+    - name: Set up pyenv and install Python for ${{ matrix.arch }}
+      shell: pwsh
       run: |
-        curl https://github.com/pyenv-win/pyenv-win/releases/latest/download/pyenv-win.zip -o pyenv-win.zip
-        unzip pyenv-win.zip -d $HOME/.pyenv
+        Invoke-WebRequest -Uri https://pyenv.run | Invoke-Expression
+        
+        echo "export PYENV_ROOT=$env:USERPROFILE\.pyenv" | Out-File -Append -FilePath $env:GITHUB_ENV
+        echo "export PATH=$env:PYENV_ROOT\bin;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
+        echo "export PATH=$env:PYENV_ROOT\shims;$env:PATH" | Out-File -Append -FilePath $env:GITHUB_ENV
 
-        echo "export PYENV_ROOT=\"$HOME/.pyenv/pyenv-win\"" >> $GITHUB_ENV
-        echo "export PATH=\"$PYENV_ROOT/bin:$PATH\"" >> $GITHUB_ENV
-        echo "export PATH=\"$PYENV_ROOT/shims:$PATH\"" >> $GITHUB_ENV
-        source $GITHUB_ENV
-
-        if [ "${{ matrix.arch }}" == "x64" ]; then
+        $env:PYENV_ROOT="$env:USERPROFILE\.pyenv"
+        $env:PATH="$env:PYENV_ROOT\bin;$env:PATH"
+        $env:PATH="$env:PYENV_ROOT\shims;$env:PATH"
+        
+        if (${{ matrix.arch }} -eq "x64") {
           pyenv install 3.10.0
-        else
-          pyenv install 3.10.0 --arch 32
-        fi
+        } else {
+          pyenv install 3.10.0 --32
+        }
         pyenv global 3.10.0
 
     - name: Install PyInstaller
@@ -42,11 +44,10 @@ jobs:
 
     - name: Build executable with PyInstaller for ${{ matrix.arch }}
       run: |
-        # Build with PyInstaller
         pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --name "CPPU-ClickToLogin-${{ matrix.arch }}" CPPU-ClickToLogin.py
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: windows-executables-${{ matrix.arch }}
-        path: dist/CPPU-ClickToLogin-${{ matrix.arch }}*
+        path: dist/*

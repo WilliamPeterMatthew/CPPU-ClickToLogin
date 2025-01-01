@@ -18,6 +18,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up pyenv and install Python for ${{ matrix.arch }}
+      shell: bash
       run: |
         curl https://pyenv.run | bash
         echo "export PATH=\"$HOME/.pyenv/bin:$PATH\"" >> $GITHUB_ENV

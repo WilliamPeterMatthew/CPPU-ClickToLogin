@@ -6,12 +6,27 @@ on:
       - master
 
 jobs:
-  create-release:
+  build-and-release:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install pyinstaller
+
+    - name: Build the executable
+      run: |
+        pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." CPPU-ClickToLogin.py
+        mv dist/* ../dist/
 
     - name: Get current date and format it
       id: date
@@ -26,6 +41,7 @@ jobs:
         current_date=${{ steps.date.outputs.date }}
         release_tag_prefix="v${current_date}-"
         release_numbers=$(gh release list --json tagName -q ".[] | select(.tagName | startswith(\"${release_tag_prefix}\")) | .tagName" || echo "")
+
         release_count=$(echo "$release_numbers" | wc -l)
         
         if [ $release_count -gt 0 ]; then
@@ -35,9 +51,8 @@ jobs:
         else
           new_version_number="01"
         fi
-        
+
         new_tag="v${current_date}-${new_version_number}"
-        echo "New release tag: $new_tag"
         echo "::set-output name=tag::$new_tag"
     
     - name: Create new release
@@ -46,11 +61,11 @@ jobs:
       run: |
         release_tag=${{ steps.releases.outputs.tag }}
         echo "Creating new release with tag: $release_tag"
-        gh release create "$release_tag" dist/* --title "CPPU-ClickToLogin $release_tag" --notes "CPPU上网认证客户端 $release_tag"
+        
+        gh release create "$release_tag" dist/* --title "Release $release_tag" --notes "Automated release for $release_tag"
 
     - name: Upload files to release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "Uploading files to release"
         gh release upload ${{ steps.releases.outputs.tag }} dist/* --clobber

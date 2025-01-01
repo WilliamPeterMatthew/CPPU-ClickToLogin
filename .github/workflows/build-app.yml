@@ -31,7 +31,7 @@ jobs:
     - name: Build executable with PyInstaller
       run: |
         pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --name "CPPU-ClickToLogin-${{ matrix.arch }}" CPPU-ClickToLogin.py
-        mv dist/* ../dist/
+        move dist\* ..\dist\
 
     - name: Get current date and format it
       id: date
@@ -43,21 +43,20 @@ jobs:
     - name: Get existing releases and count versions
       id: releases
       run: |
-        current_date=${{ steps.date.outputs.date }}
-        release_tag_prefix="v${current_date}-"
-        release_numbers=$(gh release list --json tagName -q ".[] | select(.tagName | startswith(\"${release_tag_prefix}\")) | .tagName" || echo "")
-
-        release_count=$(echo "$release_numbers" | wc -l)
+        $current_date=${{ steps.date.outputs.date }}
+        $release_tag_prefix="v${current_date}-"
+        $release_numbers = gh release list --json tagName -q ".[] | select(.tagName | startswith(\"${release_tag_prefix}\")) | .tagName" || echo ""
+        $release_count = $release_numbers.Count
         
-        if [ $release_count -gt 0 ]; then
-          max_version=$(echo "$release_numbers" | sort -V | tail -n 1)
-          version_number=$(echo $max_version | sed 's/^.*-\([0-9]*\)$/\1/')
-          new_version_number=$(printf "%02d" $((version_number + 1)))
-        else
-          new_version_number="01"
-        fi
-
-        new_tag="v${current_date}-${new_version_number}"
+        if ($release_count -gt 0) {
+          $max_version = $release_numbers | Sort-Object -Version | Select-Object -Last 1
+          $version_number = $max_version -replace '.*-([0-9]+)$','$1'
+          $new_version_number = "{0:D2}" -f ([int]$version_number + 1)
+        } else {
+          $new_version_number = "01"
+        }
+        
+        $new_tag = "v${current_date}-${new_version_number}"
         echo "::set-output name=tag::$new_tag"
 
     - name: Create new release

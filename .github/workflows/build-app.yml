@@ -49,9 +49,11 @@ jobs:
         $release_count = $release_numbers.Count
         
         if ($release_count -gt 0) {
-          $max_version = $release_numbers | Sort-Object -Version | Select-Object -Last 1
-          $version_number = $max_version -replace '.*-([0-9]+)$','$1'
-          $new_version_number = "{0:D2}" -f ([int]$version_number + 1)
+          $release_versions = $release_numbers | ForEach-Object {
+            $_ -replace '.*-([0-9]+)$','$1'
+          }
+          $max_version = $release_versions | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum
+          $new_version_number = "{0:D2}" -f ([int]$max_version + 1)
         } else {
           $new_version_number = "01"
         }

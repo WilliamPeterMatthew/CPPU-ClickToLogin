@@ -31,7 +31,6 @@ jobs:
     - name: Build executable with PyInstaller
       run: |
         pyinstaller --onefile --noconsole --icon=favicon.ico --add-data "favicon.ico;." --name "CPPU-ClickToLogin-${{ matrix.arch }}" CPPU-ClickToLogin.py
-        move dist\* ..\dist\
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3

@@ -81,9 +81,15 @@ header = {
 }
 
 url = 'http://192.168.9.18/drcom/login?callback=dr1004&DDDDD=' + quote(data['DDDDD']) + '&upass=' + quote(data['upass']) + '&0MKKey=&R1=0&R3=0&R6=0&para=00&v6ip=&v=6901'
-response = requests.post(url, data=data, headers=header).status_code
-
-if response == 200:
-    messagebox.showinfo("成功", "已连接（Code:200）")
+response = requests.post(url,data=data,headers=header)
+if response.status_code == 200:
+    soup = BeautifulSoup(response.text, 'html.parser')
+    title = soup.title.string if soup.title else ''
+    if title == "信息页":
+        messagebox.showerror("错误", "连接失败，账号或密码不正确")
+    elif title == "认证成功页":
+        messagebox.showinfo("成功", "已连接（Code:200）")
+    else:
+        messagebox.showerror("错误", "未知状态，title不是预期的值")
 else:
-    messagebox.showerror("错误", f"连接失败（Code:{response}）")
+    messagebox.showerror("错误", f"连接失败（Code:{response.status_code}）")

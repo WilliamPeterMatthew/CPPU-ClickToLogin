@@ -3,6 +3,7 @@ import os
 import requests
 from random import randrange
 from urllib.parse import quote
+from bs4 import BeautifulSoup
 import tkinter as tk
 from tkinter import messagebox
 
@@ -79,8 +80,7 @@ header = {
     'Referer': 'http://192.168.9.18/',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
 }
-
-url = 'http://192.168.9.18/drcom/login?callback=dr1004&DDDDD=' + quote(data['DDDDD']) + '&upass=' + quote(data['upass']) + '&0MKKey=&R1=0&R3=0&R6=0&para=00&v6ip=&v=6901'
+url = 'http://192.168.9.18/drcom/login?callback=dr1004&DDDDD='+quote(data['DDDDD'])+'&upass='+quote(data['upass'])+'&0MKKey=&R1=0&R3=0&R6=0&para=00&v6ip=&v=6901'
 response = requests.post(url,data=data,headers=header)
 if response.status_code == 200:
     soup = BeautifulSoup(response.text, 'html.parser')
